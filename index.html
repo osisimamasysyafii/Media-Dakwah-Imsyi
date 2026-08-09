@@ -4116,8 +4116,9 @@
         // ===== SHARE & CALENDAR =====
         function shareKajianWhatsApp(title, pemateri, waktu, lokasi, event) {
             event.stopPropagation();
+            const jadwalUrl = `${location.origin}/jadwal/`;
             const text =
-                `Yuk Hadiri Kajian Islam!\n\n📚 Judul: ${title}\n👨‍🏫 Pemateri: ${pemateri}\n⏰ Waktu: ${waktu}\n📍 Lokasi: ${lokasi}\n\nDisiarkan melalui Portal IMAM - ASY SYAFII`;
+                `Yuk Hadiri Kajian Islam!\n\n📚 Judul: ${title}\n👳🏻 Pemateri: ${pemateri}\n⏰ Waktu: ${waktu}\n📍 Lokasi: ${lokasi}\n\nDisiarkan melalui Portal IMAM - ASY SYAFII\n${jadwalUrl}`;
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
         }
 
@@ -4128,14 +4129,15 @@
             const item = currentModalKajian;
             if (!item) return;
 
-            let text = `Yuk Hadiri Kajian Islam!\n\n📚 Judul: ${item.judul}\n👨‍🏫 Pemateri: ${item.pemateri}\n⏰ Waktu: ${item.waktu}\n📍 Lokasi: ${item.lokasi}`;
+            let text = `Yuk Hadiri Kajian Islam!\n\n📚 Judul: ${item.judul}\n👳🏻 Pemateri: ${item.pemateri}\n⏰ Waktu: ${item.waktu}\n📍 Lokasi: ${item.lokasi}`;
             if (item.videoUrl && item.videoUrl.trim() !== '') {
                 text += `\n🎬 Video: ${item.videoUrl}`;
             }
             if (item.audioUrl && item.audioUrl.trim() !== '') {
                 text += `\n🎧 Audio: ${item.audioUrl}`;
             }
-            text += `\n\nDisiarkan melalui Portal IMAM - ASY SYAFII`;
+            const jadwalUrl = `${location.origin}/jadwal/`;
+            text += `\n\nDisiarkan melalui Portal IMAM - ASY SYAFII\n${jadwalUrl}`;
 
             if (navigator.share) {
                 navigator.share({ title: item.judul, text: text }).catch(() => {});
