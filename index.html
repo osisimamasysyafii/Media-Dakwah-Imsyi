@@ -3373,7 +3373,7 @@
         }
 
         // ===== TAB NAVIGATION =====
-        function switchTab(tabId) {
+        function switchTab(tabId, updateUrl = true) {
             const current = document.querySelector('.tab-page.active');
             const target = document.getElementById(tabId);
             if (!target) return;
@@ -3381,6 +3381,15 @@
             document.querySelectorAll('.nav-link, .mobile-link').forEach(el => {
                 el.classList.toggle('active', el.dataset.tab === tabId);
             });
+
+            // Ubah alamat di address bar jadi /namatab/ (mis. /beranda/, /jadwal/)
+            // tanpa reload halaman, supaya URL sesuai tab yang lagi dibuka.
+            if (updateUrl) {
+                const newPath = '/' + tabId + '/';
+                if (location.pathname !== newPath) {
+                    history.pushState({ tab: tabId }, '', newPath);
+                }
+            }
 
             closeMobileMenu();
 
@@ -4800,12 +4809,41 @@
             document.querySelectorAll('.tab-page').forEach(el => {
                 el.style.display = 'none';
             });
-            const beranda = document.getElementById('beranda');
-            if (beranda) {
-                beranda.style.display = 'block';
-                beranda.classList.add('active');
+
+            // Tentukan tab awal dari URL saat ini, mis. /jadwal/ -> buka tab "jadwal".
+            // Kalau path-nya tidak dikenali (atau di root "/"), fallback ke "beranda".
+            const validTabs = ['beranda', 'jadwal', 'video', 'tanya', 'donasi'];
+            const pathTab = location.pathname.replace(/\//g, '');
+            const initialTab = validTabs.includes(pathTab) ? pathTab : 'beranda';
+
+            const startEl = document.getElementById(initialTab);
+            if (startEl) {
+                startEl.style.display = 'block';
+                startEl.classList.add('active');
+                document.querySelectorAll('.nav-link, .mobile-link').forEach(el => {
+                    el.classList.toggle('active', el.dataset.tab === initialTab);
+                });
+                if (initialTab === 'jadwal') filterKajian();
+                if (initialTab === 'video') renderVideos();
             }
+
+            // Samakan URL address bar dengan tab yang benar-benar terbuka
+            // (misalnya root "/" dirapikan jadi "/beranda/").
+            const cleanPath = '/' + initialTab + '/';
+            if (location.pathname !== cleanPath) {
+                history.replaceState({ tab: initialTab }, '', cleanPath);
+            }
+
             initScrollReveal();
+        });
+
+        // Tangani tombol Back/Forward browser supaya tab ikut berpindah
+        // sesuai URL, tanpa nambah entri riwayat baru.
+        window.addEventListener('popstate', function() {
+            const validTabs = ['beranda', 'jadwal', 'video', 'tanya', 'donasi'];
+            const pathTab = location.pathname.replace(/\//g, '');
+            const tabId = validTabs.includes(pathTab) ? pathTab : 'beranda';
+            switchTab(tabId, false);
         });
     </script>
 </body>
