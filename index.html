@@ -3595,6 +3595,7 @@ body.editing .edit-badge{display:flex;}
     <div class="admin-modal-body" id="adminDashBody" style="display:none; padding:0;">
       <div class="admin-tabs">
         <button class="admin-tab active" data-tab="text"><i class="fas fa-i-cursor"></i> Teks</button>
+        <button class="admin-tab" data-tab="stats"><i class="fas fa-chart-bar"></i> Statistik</button>
         <button class="admin-tab" data-tab="program"><i class="fas fa-tasks"></i> Program</button>
         <button class="admin-tab" data-tab="struktur"><i class="fas fa-sitemap"></i> Struktur</button>
         <button class="admin-tab" data-tab="galeri"><i class="fas fa-images"></i> Galeri</button>
@@ -3609,6 +3610,21 @@ body.editing .edit-badge{display:flex;}
           <button class="btn btn-solid" id="toggleEditBtn" onclick="toggleEditMode()" style="width:100%; justify-content:center;">
             <i class="fas fa-pen"></i> Aktifkan Mode Edit
           </button>
+        </div>
+
+        <!-- Stats Tab -->
+        <div class="admin-panel" id="tab-stats" style="display:none;">
+          <p style="margin-bottom:16px; color:var(--hijau-soft); font-size:14px;">Angka statistik yang tampil di halaman Beranda (mis. "42 Pengurus Santri").</p>
+          <button class="btn btn-solid" onclick="showStatForm()" style="margin-bottom:16px;"><i class="fas fa-plus"></i> Tambah Statistik</button>
+          <div class="admin-edit-panel" id="statFormPanel">
+            <h4 style="margin-bottom:16px;">Tambah/Edit Statistik</h4>
+            <input type="hidden" id="statId">
+            <div class="admin-form-group"><label>Jumlah (angka)</label><input type="number" id="statCount"></div>
+            <div class="admin-form-group"><label>Label</label><input type="text" id="statLabel" placeholder="mis. Pengurus Santri"></div>
+            <button class="btn btn-solid" onclick="saveStat()"><i class="fas fa-save"></i> Simpan</button>
+            <button class="btn btn-ghost" onclick="hideStatForm()">Batal</button>
+          </div>
+          <div id="statList"></div>
         </div>
 
         <!-- Program Tab -->
@@ -3834,6 +3850,11 @@ STATE_DOC_REF.onSnapshot((docSnap) => {
     // First run ever: seed Firestore with the default content.
     STATE_DOC_REF.set({ payload: DEFAULT_STATE, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
     state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  }
+  // Bersihkan stat "Ekstrakurikuler" peninggalan versi lama dari tampilan (tanpa nyimpen —
+  // simpan hanya dilakukan saat admin login, lihat auth.onAuthStateChanged di bawah).
+  if (Array.isArray(state.stats)) {
+    state.stats = state.stats.filter(s => (s.label || '').toLowerCase().indexOf('ekstrakurikuler') === -1);
   }
   firestoreReady = true;
   renderAll();
@@ -4181,6 +4202,8 @@ auth.onAuthStateChanged((user) => {
     document.getElementById('adminFooter').style.display = 'flex';
     document.getElementById('adminModalTitle').innerHTML = '<i class="fas fa-sliders-h" style="color:var(--emas-teks)"></i> Panel Admin';
     if (firestoreReady) renderAdminLists();
+    // Sinkronkan pembersihan stat "Ekstrakurikuler" ke server sekarang, karena kita sudah login sebagai admin.
+    saveState();
     showToast('Berhasil masuk!');
   } else {
     editingMode = false;
@@ -4236,6 +4259,13 @@ function saveInlineEdit(e) {
 }
 
 function renderAdminLists() {
+  // Statistik
+  document.getElementById('statList').innerHTML = state.stats.map((s, i) => `
+    <div class="admin-list-item">
+      <div class="item-info"><strong>${s.count}</strong><span>${s.label}</span></div>
+      <div class="admin-actions"><button class="admin-btn-sm" onclick="editStat(${i})"><i class="fas fa-edit"></i></button><button class="admin-btn-sm danger" onclick="deleteStat(${i})"><i class="fas fa-trash"></i></button></div>
+    </div>`).join('');
+
   // Program
   document.getElementById('programList').innerHTML = state.programs.map((p, i) => `
     <div class="admin-list-item">
@@ -4271,6 +4301,25 @@ function renderAdminLists() {
       <div class="admin-actions"><button class="admin-btn-sm" onclick="editFaq(${i})"><i class="fas fa-edit"></i></button><button class="admin-btn-sm danger" onclick="deleteFaq(${i})"><i class="fas fa-trash"></i></button></div>
     </div>`).join('');
 }
+
+// Statistik CRUD
+function showStatForm() { document.getElementById('statFormPanel').classList.add('active'); }
+function hideStatForm() { document.getElementById('statFormPanel').classList.remove('active'); document.getElementById('statId').value=''; document.getElementById('statCount').value=''; document.getElementById('statLabel').value=''; }
+function saveStat() {
+  const id = document.getElementById('statId').value;
+  const data = { count: parseInt(document.getElementById('statCount').value) || 0, label: document.getElementById('statLabel').value };
+  if(id) { state.stats[parseInt(id)] = {...state.stats[parseInt(id)], ...data}; }
+  else { state.stats.push(data); }
+  saveState(); renderStats(); renderAdminLists(); hideStatForm(); showToast('Statistik disimpan!');
+}
+function editStat(i) {
+  const s = state.stats[i];
+  document.getElementById('statId').value = i;
+  document.getElementById('statCount').value = s.count;
+  document.getElementById('statLabel').value = s.label;
+  showStatForm();
+}
+function deleteStat(i) { state.stats.splice(i,1); saveState(); renderStats(); renderAdminLists(); showToast('Statistik dihapus!'); }
 
 // Program CRUD
 function showProgramForm() { document.getElementById('programFormPanel').classList.add('active'); }
