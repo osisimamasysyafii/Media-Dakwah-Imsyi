@@ -466,6 +466,24 @@ body.editing .edit-badge{display:flex;}
 .admin-form-group input:focus, .admin-form-group select:focus, .admin-form-group textarea:focus{outline:none; border-color:var(--hijau);}
 .admin-form-group textarea{resize:vertical; min-height:80px;}
 
+/* Custom dropdown (menggantikan tampilan native <select> bawaan OS) */
+.admin-form-group select.cs-native-hidden{display:none;}
+.cs-select-wrap{position:relative;}
+.cs-trigger{display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; border:1.3px solid var(--garis); background:var(--gading); padding:10px 12px; font-family:inherit; font-size:14px; color:var(--hijau); cursor:pointer; border-radius:var(--radius); transition:.25s var(--ease);}
+.cs-trigger:hover{border-color:var(--emas-teks);}
+.cs-trigger.open{border-color:var(--hijau); box-shadow:0 0 0 3px rgba(19,42,76,.08);}
+.cs-trigger .cs-trigger-label{overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.cs-trigger svg{width:14px; height:14px; flex-shrink:0; stroke:var(--hijau-soft); transition:transform .25s var(--ease), stroke .25s var(--ease);}
+.cs-trigger.open svg{transform:rotate(180deg); stroke:var(--emas-teks);}
+.cs-menu{position:absolute; left:0; right:0; top:calc(100% + 6px); background:var(--gading); border:1.3px solid var(--garis); border-radius:var(--radius); box-shadow:var(--shadow-lg); z-index:50; overflow-y:auto; max-height:240px; opacity:0; transform:translateY(-6px) scale(.98); pointer-events:none; transition:opacity .18s var(--ease), transform .18s var(--ease); transform-origin:top center;}
+.cs-menu.open{opacity:1; transform:translateY(0) scale(1); pointer-events:auto;}
+.cs-option{padding:11px 12px; font-size:13.5px; color:var(--hijau); cursor:pointer; display:flex; align-items:center; justify-content:space-between; gap:10px; border-bottom:1px solid var(--garis); transition:background .15s var(--ease), color .15s var(--ease);}
+.cs-option:last-child{border-bottom:none;}
+.cs-option:hover{background:var(--krem);}
+.cs-option.selected{background:var(--hijau); color:var(--gading); font-weight:600;}
+.cs-option .cs-check{width:14px; height:14px; opacity:0; stroke:var(--emas-terang); flex-shrink:0;}
+.cs-option.selected .cs-check{opacity:1;}
+
 .admin-edit-panel{display:none; background:var(--krem); border:1px dashed var(--emas-teks); padding:20px; border-radius:var(--radius); margin-bottom:20px;}
 .admin-edit-panel.active{display:block; animation:fadeIn .3s var(--ease);}
 @keyframes fadeIn{from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);}}
@@ -4327,6 +4345,60 @@ function editStat(i) {
   showStatForm();
 }
 function deleteStat(i) { state.stats.splice(i,1); saveState(); renderStats(); renderAdminLists(); showToast('Statistik dihapus!'); }
+
+// ==================== CUSTOM DROPDOWN (ganti tampilan <select> bawaan OS) ====================
+function makeCustomSelect(selectEl) {
+  if (!selectEl || selectEl.dataset.csEnhanced) return;
+  selectEl.dataset.csEnhanced = '1';
+  selectEl.classList.add('cs-native-hidden');
+
+  const wrap = document.createElement('div');
+  wrap.className = 'cs-select-wrap';
+  const trigger = document.createElement('button');
+  trigger.type = 'button';
+  trigger.className = 'cs-trigger';
+  trigger.innerHTML = '<span class="cs-trigger-label"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+  const menu = document.createElement('div');
+  menu.className = 'cs-menu';
+
+  Array.from(selectEl.options).forEach(opt => {
+    const row = document.createElement('div');
+    row.className = 'cs-option';
+    row.dataset.value = opt.value;
+    row.innerHTML = '<span>' + opt.textContent + '</span><svg class="cs-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
+    row.addEventListener('click', () => { selectEl.value = opt.value; closeMenu(); });
+    menu.appendChild(row);
+  });
+
+  wrap.appendChild(trigger);
+  wrap.appendChild(menu);
+  selectEl.insertAdjacentElement('afterend', wrap);
+
+  function closeMenu() { trigger.classList.remove('open'); menu.classList.remove('open'); }
+  function openMenu() {
+    document.querySelectorAll('.cs-trigger.open').forEach(t => { if (t !== trigger) { t.classList.remove('open'); t.nextElementSibling && t.nextElementSibling.classList.remove('open'); } });
+    trigger.classList.add('open'); menu.classList.add('open');
+  }
+  trigger.addEventListener('click', (e) => { e.stopPropagation(); trigger.classList.contains('open') ? closeMenu() : openMenu(); });
+
+  function syncLabel() {
+    const cur = selectEl.options[selectEl.selectedIndex];
+    trigger.querySelector('.cs-trigger-label').textContent = cur ? cur.textContent : '';
+    menu.querySelectorAll('.cs-option').forEach(r => r.classList.toggle('selected', r.dataset.value === selectEl.value));
+  }
+  syncLabel();
+
+  // Timpa properti "value" bawaan supaya kalau ada kode lain yang set selectEl.value = ...
+  // (mis. saat buka form edit), tampilan dropdown custom ini ikut ke-update otomatis.
+  const desc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+  Object.defineProperty(selectEl, 'value', {
+    get() { return desc.get.call(selectEl); },
+    set(v) { desc.set.call(selectEl, v); syncLabel(); },
+    configurable: true
+  });
+}
+document.addEventListener('click', () => { document.querySelectorAll('.cs-trigger.open').forEach(t => { t.classList.remove('open'); t.nextElementSibling && t.nextElementSibling.classList.remove('open'); }); });
+['progBidang', 'progStatus', 'strukturType', 'galCat'].forEach(id => { const el = document.getElementById(id); if (el) makeCustomSelect(el); });
 
 // Program CRUD
 function showProgramForm() { document.getElementById('programFormPanel').classList.add('active'); }
