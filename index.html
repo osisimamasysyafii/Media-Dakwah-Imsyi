@@ -275,6 +275,22 @@ section{padding:110px 0; position:relative;}
 .field label{display:block; font-size:12px; font-weight:700; margin-bottom:8px; text-transform:uppercase; letter-spacing:.04em; color:var(--hijau-soft); font-family:'Reem Kufi',sans-serif;}
 .field input, .field select, .field textarea{width:100%; border:1.3px solid var(--garis); background:var(--gading); padding:13px 14px; font-family:inherit; font-size:14.5px; border-radius:var(--radius); color:var(--hijau); transition:.35s var(--ease);}
 .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--hijau);}
+.subjek-dropdown{position:relative;}
+.subjek-select-btn{width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; border:1.3px solid var(--garis); background:var(--gading); padding:13px 14px; font-family:inherit; font-size:14.5px; text-align:left; border-radius:var(--radius); color:var(--hijau); cursor:pointer; transition:.35s var(--ease);}
+.subjek-select-btn span{color:var(--hijau-soft);}
+.subjek-select-btn.has-value span{color:var(--hijau);}
+.subjek-select-btn:hover{border-color:var(--hijau-soft);}
+.subjek-dropdown.open .subjek-select-btn{border-color:var(--hijau);}
+.subjek-select-btn svg{flex-shrink:0; color:var(--hijau-soft); transition:transform .35s var(--ease);}
+.subjek-dropdown.open .subjek-select-btn svg{transform:rotate(180deg);}
+.field.invalid .subjek-select-btn{border-color:#9A4A2E;}
+.subjek-dropdown-list{position:absolute; top:calc(100% + 8px); left:0; right:0; max-height:280px; overflow-y:auto; background:var(--gading); border:1px solid var(--garis); border-radius:var(--radius); box-shadow:var(--shadow-lg); padding:6px; z-index:80; opacity:0; visibility:hidden; transform:translateY(-8px); transition:opacity .3s var(--ease), transform .3s var(--ease), visibility .3s;}
+.subjek-dropdown.open .subjek-dropdown-list{opacity:1; visibility:visible; transform:translateY(0);}
+.subjek-dropdown-item{display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; text-align:left; padding:12px 14px; font-family:inherit; font-size:14.5px; color:var(--hijau); border-radius:calc(var(--radius) - 8px); transition:.25s var(--ease); cursor:pointer;}
+.subjek-dropdown-item:hover{background:rgba(180,134,58,.1);}
+.subjek-dropdown-item .chk{opacity:0; flex-shrink:0; color:var(--emas-teks); transition:.25s var(--ease);}
+.subjek-dropdown-item.active{color:var(--emas-teks); font-weight:700;}
+.subjek-dropdown-item.active .chk{opacity:1;}
 .field textarea{resize:vertical; min-height:110px;}
 .field .err{color:var(--emas-teks); font-size:12px; margin-top:6px; display:none; font-family:'Reem Kufi',sans-serif;}
 .field.invalid input, .field.invalid select, .field.invalid textarea{border-color:#9A4A2E;}
@@ -2672,7 +2688,22 @@ body.editing .edit-badge{display:flex;}
         <form id="contactForm" novalidate>
           <div class="field" id="f-nama"><label for="nama">Nama Lengkap</label><input type="text" id="nama" name="nama" placeholder="Nama kamu"><div class="err">Nama wajib diisi (minimal 3 karakter).</div></div>
           <div class="field" id="f-email"><label for="email">Email</label><input type="email" id="email" name="email" placeholder="nama@email.com"><div class="err">Masukkan alamat email yang valid.</div></div>
-          <div class="field" id="f-subjek"><label for="subjek">Subjek</label><select id="subjek" name="subjek"><option value="">Pilih subjek pesan</option><option>Aspirasi &amp; Masukan</option><option>Jadwal Kunjungan Wali Santri</option><option>Pendaftaran Pengurus</option><option>Kerja Sama</option><option>Lainnya</option></select><div class="err">Silakan pilih salah satu subjek.</div></div>
+          <div class="field" id="f-subjek"><label for="subjekDropdownBtn">Subjek</label>
+            <div class="subjek-dropdown" id="subjekDropdown">
+              <button type="button" class="subjek-select-btn" id="subjekDropdownBtn" aria-haspopup="listbox" aria-expanded="false">
+                <span id="subjekSelectedLabel">Pilih subjek pesan</span>
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+              </button>
+              <select id="subjek" name="subjek" class="city-select-native" aria-hidden="true" tabindex="-1"><option value="">Pilih subjek pesan</option><option>Aspirasi &amp; Masukan</option><option>Jadwal Kunjungan Wali Santri</option><option>Pendaftaran Pengurus</option><option>Kerja Sama</option><option>Lainnya</option></select>
+              <div class="subjek-dropdown-list" id="subjekDropdownList" role="listbox" aria-label="Pilih subjek pesan">
+                <button type="button" class="subjek-dropdown-item" data-value="Aspirasi &amp; Masukan" role="option" aria-selected="false"><span>Aspirasi &amp; Masukan</span><svg class="chk" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></button>
+                <button type="button" class="subjek-dropdown-item" data-value="Jadwal Kunjungan Wali Santri" role="option" aria-selected="false"><span>Jadwal Kunjungan Wali Santri</span><svg class="chk" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></button>
+                <button type="button" class="subjek-dropdown-item" data-value="Pendaftaran Pengurus" role="option" aria-selected="false"><span>Pendaftaran Pengurus</span><svg class="chk" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></button>
+                <button type="button" class="subjek-dropdown-item" data-value="Kerja Sama" role="option" aria-selected="false"><span>Kerja Sama</span><svg class="chk" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></button>
+                <button type="button" class="subjek-dropdown-item" data-value="Lainnya" role="option" aria-selected="false"><span>Lainnya</span><svg class="chk" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></button>
+              </div>
+            </div>
+          <div class="err">Silakan pilih salah satu subjek.</div></div>
           <div class="field" id="f-pesan"><label for="pesan">Pesan</label><textarea id="pesan" name="pesan" maxlength="400" placeholder="Tulis pesanmu di sini..."></textarea><div class="char-count"><span id="charNow">0</span>/400</div><div class="err">Pesan minimal 10 karakter.</div></div>
           <button type="submit" class="btn btn-solid" style="width:100%; justify-content:center;">Kirim Pesan</button>
         </form>
@@ -4032,7 +4063,55 @@ document.getElementById('lightbox').onclick = e => { if(e.target.id==='lightbox'
 document.getElementById('orgModalClose').onclick = () => { document.getElementById('orgModal').classList.remove('open'); document.body.classList.remove('no-scroll'); };
 document.getElementById('orgModal').onclick = e => { if(e.target.id==='orgModal') { e.target.classList.remove('open'); document.body.classList.remove('no-scroll'); }};
 
+// Custom subjek dropdown (themed replacement for native <select> picker)
+(function initSubjekDropdown(){
+  const dd = document.getElementById('subjekDropdown');
+  const btn = document.getElementById('subjekDropdownBtn');
+  const list = document.getElementById('subjekDropdownList');
+  const label = document.getElementById('subjekSelectedLabel');
+  const nativeSelect = document.getElementById('subjek');
+  if (!dd || !btn || !list || !label || !nativeSelect) return;
+
+  function closeDropdown(){
+    dd.classList.remove('open');
+    btn.setAttribute('aria-expanded', 'false');
+  }
+  function openDropdown(){
+    dd.classList.add('open');
+    btn.setAttribute('aria-expanded', 'true');
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dd.classList.contains('open') ? closeDropdown() : openDropdown();
+  });
+
+  list.querySelectorAll('.subjek-dropdown-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const val = item.dataset.value;
+      list.querySelectorAll('.subjek-dropdown-item').forEach(i => {
+        i.classList.remove('active');
+        i.setAttribute('aria-selected', 'false');
+      });
+      item.classList.add('active');
+      item.setAttribute('aria-selected', 'true');
+      label.textContent = item.querySelector('span').textContent;
+      btn.classList.add('has-value');
+      nativeSelect.value = val;
+      nativeSelect.dispatchEvent(new Event('change'));
+      document.getElementById('f-subjek')?.classList.remove('invalid');
+      closeDropdown();
+    });
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!dd.contains(e.target)) closeDropdown();
+  });
+})();
+
 // Contact Form
+const WEB3FORMS_ACCESS_KEY = 'a89f5ce8-a991-4c59-9d31-68957d7684b7';
+
 document.getElementById('contactForm').addEventListener('submit', e => {
   e.preventDefault();
   const nama = document.getElementById('nama').value.trim();
@@ -4046,7 +4125,42 @@ document.getElementById('contactForm').addEventListener('submit', e => {
   if(!emailOk){ setInvalid('f-email', true); valid=false; } else setInvalid('f-email', false);
   if(!subjek){ setInvalid('f-subjek', true); valid=false; } else setInvalid('f-subjek', false);
   if(pesan.length < 10){ setInvalid('f-pesan', true); valid=false; } else setInvalid('f-pesan', false);
-  if(valid) { e.target.style.display = 'none'; document.getElementById('formSuccess').classList.add('show'); }
+  if(!valid) return;
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  const submitBtnOriginalText = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Mengirim...';
+
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({
+      access_key: WEB3FORMS_ACCESS_KEY,
+      subject: `[OSIS] Pesan baru: ${subjek}`,
+      from_name: 'Website OSIS Pondok Pesantren Imam Asy Syafii',
+      name: nama,
+      email: email,
+      subjek: subjek,
+      message: pesan
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        e.target.style.display = 'none';
+        document.getElementById('formSuccess').classList.add('show');
+      } else {
+        throw new Error(data.message || 'Gagal mengirim pesan');
+      }
+    })
+    .catch(() => {
+      alert('Gagal mengirim pesan. Periksa koneksi internet kamu, lalu coba lagi.');
+    })
+    .finally(() => {
+      submitBtn.disabled = false;
+      submitBtn.textContent = submitBtnOriginalText;
+    });
 });
 document.getElementById('pesan').addEventListener('input', e => { document.getElementById('charNow').textContent = e.target.value.length; });
 
@@ -5881,6 +5995,22 @@ init();
             pertanyaanCol.add(entry)
                 .then(() => {
                     showToast('Pertanyaan berhasil dikirim. Jazaakallahu khairan!');
+                    // Kirim notifikasi email ke Gmail admin (best-effort, tidak menghalangi
+                    // keberhasilan utama yang sudah tersimpan di Firestore di atas).
+                    fetch('https://api.web3forms.com/submit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                        body: JSON.stringify({
+                            access_key: WEB3FORMS_ACCESS_KEY,
+                            subject: `[Tanya Ustadz] Pertanyaan baru dari ${entry.nama}`,
+                            from_name: 'Portal Dakwah IMAM - ASY SYAFII',
+                            name: entry.nama,
+                            kontak: entry.kontak,
+                            kategori: entry.kategori,
+                            anonim: entry.anon ? 'Ya' : 'Tidak',
+                            message: entry.pertanyaan
+                        })
+                    }).catch(err => console.error('Gagal mengirim notifikasi email:', err));
                     document.getElementById('qnaForm').reset();
                     selectQnaKategori('Aqidah');
                 })
